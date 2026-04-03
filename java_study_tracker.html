@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java 学习打卡 · 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f7f7f5;padding:1.5rem;color:#1a1a1a;}
+.wrap{max-width:860px;margin:0 auto;}
+.header{margin-bottom:1.25rem;text-align:center;}
+.header-title{font-size:17px;font-weight:500;color:#1a1a1a;}
+.header-sub{font-size:12px;color:#888;margin-top:3px;}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px;}
+.stat{background:#fff;border:0.5px solid #ccc;border-radius:12px;padding:12px 16px;text-align:center;}
+.stat-num{font-size:22px;font-weight:500;color:#1a1a1a;}
+.stat-label{font-size:11px;color:#888;margin-top:2px;}
+.bar-wrap{margin-bottom:20px;}
+.bar-track{height:5px;background:#e0e0da;border-radius:3px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;background:#7F77DD;transition:width 0.4s;}
+.bar-label{display:flex;justify-content:space-between;font-size:11px;color:#aaa;margin-top:4px;}
+.legend{display:flex;gap:14px;margin-bottom:20px;justify-content:center;flex-wrap:wrap;}
+.leg{display:flex;align-items:center;gap:5px;font-size:12px;color:#888;}
+.leg-dot{width:8px;height:8px;border-radius:50%;}
+.phase{margin-bottom:2rem;}
+.phase-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.phase-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.phase-name{font-size:13px;font-weight:500;color:#1a1a1a;}
+.phase-desc{font-size:11px;color:#888;}
+.phase-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.phase-count{font-size:11px;color:#aaa;white-space:nowrap;}
+.phase-bar-track{width:80px;height:5px;background:#e0e0da;border-radius:3px;overflow:hidden;}
+.phase-bar-fill{height:100%;border-radius:3px;transition:width 0.4s;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;}
+.cal-head{text-align:center;font-size:11px;color:#aaa;padding:4px 0;font-weight:500;}
+.cal-head.sun{color:#D85A30;}
+.cal-empty{min-height:80px;}
+.card{background:#fff;border:0.5px solid #e0e0da;border-radius:8px;padding:8px 9px;cursor:pointer;transition:all 0.2s;border-top-width:3px;border-top-style:solid;min-height:80px;position:relative;}
+.card:hover{border-color:#bbb;}
+.card.today{box-shadow:0 0 0 1.5px #378ADD;}
+.d-overlay{display:none;position:absolute;inset:0;border-radius:8px;align-items:center;justify-content:center;flex-direction:column;gap:3px;}
+.card.done .d-overlay{display:flex;}
+.d-check-big{font-size:22px;font-weight:500;}
+.d-done-day{font-size:10px;font-weight:500;}
+.d-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.d-num{font-size:11px;font-weight:500;color:#888;}
+.d-hours{font-size:10px;padding:1px 4px;border-radius:3px;background:#f2f2ee;color:#888;}
+.d-task{font-size:11px;color:#1a1a1a;line-height:1.4;}
+.d-algo{font-size:10px;color:#aaa;margin-top:3px;line-height:1.35;}
+.d-date{font-size:10px;color:#aaa;margin-bottom:3px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header">
+  <div class="header-title">Java 学习打卡 · 2026</div>
+  <div class="header-sub">4月5日 — 6月11日，共68天</div>
+</div>
+<div class="stats">
+  <div class="stat"><div class="stat-num" id="dn">0</div><div class="stat-label">已完成天数</div></div>
+  <div class="stat"><div class="stat-num" id="rem">68</div><div class="stat-label">剩余天数</div></div>
+  <div class="stat"><div class="stat-num" id="pc">0%</div><div class="stat-label">整体进度</div></div>
+</div>
+<div class="bar-wrap">
+  <div class="bar-track"><div class="bar-fill" id="pf" style="width:0%"></div></div>
+  <div class="bar-label"><span>4月5日</span><span>6月11日</span></div>
+</div>
+<div class="legend">
+  <div class="leg"><div class="leg-dot" style="background:#7F77DD"></div><span>第一阶段：Java基础</span></div>
+  <div class="leg"><div class="leg-dot" style="background:#1D9E75"></div><span>第二阶段：项目实战</span></div>
+  <div class="leg"><div class="leg-dot" style="background:#D85A30"></div><span>第三阶段：简历投递</span></div>
+</div>
+<div id="phases"></div>
+</div>
+<script>
+const START=new Date('2026-04-05');
+const KEY='java_tracker_v5';
+let done=[];
+try{done=JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){}
+const PHASES=[
+  {name:'第一阶段：Java基础 + 算法',desc:'面渣逆袭 · 二哥进阶之路 · LeetCode HOT100',color:'#7F77DD',days:[
+    {h:'3h',t:'环境配置\nJava语法基础',a:'算法：两数之和'},
+    {h:'6h',t:'面渣基础篇\n7~16',a:'数组/字符串 · 算法3题'},
+    {h:'5h',t:'面渣基础篇\n17~32',a:'算法 6~10题'},
+    {h:'4h',t:'集合框架（上）\n2.5全内容',a:'算法 11~13题'},
+    {h:'4h',t:'集合框架（中）\nArrayList/LinkedList',a:'算法 14~16题'},
+    {h:'4h',t:'集合框架（下）\nHashMap/HashSet',a:'算法 17~18题'},
+    {h:'4h',t:'集合框架\n收尾+复习',a:'算法 19~20题'},
+    {h:'5h',t:'并发编程（上）\n线程基础',a:'算法 21~23题'},
+    {h:'5h',t:'并发编程\nsynchronized/volatile',a:'算法 24~26题'},
+    {h:'5h',t:'并发编程\nThreadLocal',a:'算法 27~29题'},
+    {h:'5h',t:'并发编程\n线程池',a:'算法 30~32题'},
+    {h:'5h',t:'并发编程\n复习整理',a:'算法 33~35题'},
+    {h:'5h',t:'并发编程\n面试题刷完',a:'算法 36~38题'},
+    {h:'5h',t:'并发编程\n收尾',a:'算法 39~40题'},
+    {h:'6h',t:'JVM\n内存区域划分',a:'算法 41~43题'},
+    {h:'6h',t:'JVM\n垃圾回收机制',a:'算法 44~46题'},
+    {h:'6h',t:'JVM\n类加载机制',a:'算法 47~49题'},
+    {h:'6h',t:'JVM\n面试题（上）',a:'算法 50~52题'},
+    {h:'6h',t:'JVM\n面试题（下）',a:'算法 53~55题'},
+    {h:'6h',t:'JVM\n复习整理',a:'算法 56~58题'},
+    {h:'6h',t:'JVM收尾',a:'算法 59~60题'},
+    {h:'8h',t:'MySQL · 索引\nMYDB开始',a:'算法 61~63题'},
+    {h:'8h',t:'MySQL\n事务/日志',a:'算法 64~66题'},
+    {h:'8h',t:'MySQL · 锁',a:'算法 67~69题'},
+    {h:'8h',t:'MySQL\n面试题（上）',a:'算法 70~72题'},
+    {h:'8h',t:'MySQL\n面试题（下）',a:'算法 73~75题'},
+    {h:'8h',t:'MySQL\n复习整理',a:'算法 76~78题'},
+    {h:'8h',t:'MySQL收尾\nMYDB写简历',a:'算法 79题'},
+    {h:'8h',t:'MYDB\n整理项目亮点',a:'算法 80题'},
+    {h:'8h',t:'全阶段复习\n整理笔记',a:''},
+    {h:'8h',t:'推送GitHub\n准备简历素材',a:''}
+  ]},
+  {name:'第二阶段：技术派项目实战',desc:'跟着教程做完，能对面试官讲清楚',color:'#1D9E75',days:[
+    {h:'4h',t:'搭建技术派\n项目环境',a:''},{h:'4h',t:'理解项目\n整体结构',a:''},{h:'4h',t:'用户模块\n开发',a:''},
+    {h:'4h',t:'文章模块\n（上）',a:''},{h:'4h',t:'文章模块\n（下）',a:''},{h:'4h',t:'评论模块',a:''},
+    {h:'4h',t:'推送GitHub\n阶段小结',a:''},{h:'4h',t:'标签/分类\n模块',a:''},{h:'4h',t:'搜索功能',a:''},
+    {h:'4h',t:'首页功能',a:''},{h:'4h',t:'推送GitHub',a:''},{h:'4h',t:'管理后台\n（上）',a:''},
+    {h:'4h',t:'管理后台\n（下）',a:''},{h:'4h',t:'接口联调',a:''},{h:'4h',t:'功能自测',a:''},
+    {h:'4h',t:'Bug修复\n代码优化',a:''},{h:'4h',t:'写项目\nREADME',a:''},{h:'4h',t:'推送GitHub',a:''},
+    {h:'4h',t:'梳理项目\n亮点',a:''},{h:'4h',t:'准备项目\n介绍话术',a:''}
+  ]},
+  {name:'第三阶段：简历 + 实习投递',desc:'简历定稿，开始投实习，刷面渣逆袭',color:'#D85A30',days:[
+    {h:'3h',t:'写简历\n初稿',a:''},{h:'3h',t:'优化项目\n描述',a:''},{h:'3h',t:'补充技术栈',a:''},
+    {h:'3h',t:'简历定稿',a:''},{h:'3h',t:'投实习\n第一批（10家）',a:'面渣：Java基础'},
+    {h:'3h',t:'面渣：\n集合框架',a:''},{h:'3h',t:'面渣：\n并发编程',a:''},
+    {h:'3h',t:'投实习\n第二批（10家）',a:'面渣：JVM'},{h:'3h',t:'面渣：MySQL',a:''},
+    {h:'3h',t:'模拟面试\n自问自答',a:''},{h:'3h',t:'整理常见\n面试题',a:''},
+    {h:'3h',t:'继续投递\n跟进',a:''},{h:'3h',t:'面试准备',a:''},{h:'3h',t:'复盘薄弱点',a:''},
+    {h:'3h',t:'补弱项',a:''},{h:'3h',t:'继续投递',a:''},{h:'3h',t:'冲！',a:''}
+  ]}
+];
+const WEEK_DAYS=['日','一','二','三','四','五','六'];
+function getDate(idx){const d=new Date(START);d.setDate(d.getDate()+idx);return d;}
+function fmt(d){return`${d.getMonth()+1}/${d.getDate()}`;}
+function isToday(d){return d.toDateString()===new Date().toDateString();}
+function toggle(id){const i=done.indexOf(id);if(i===-1)done.push(id);else done.splice(i,1);try{localStorage.setItem(KEY,JSON.stringify(done));}catch(e){}render();}
+function hex2rgba(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},${a})`;}
+function buildCalendar(days,globalOffset,color){
+  const frag=document.createDocumentFragment();
+  const startDow=getDate(globalOffset).getDay();
+  const headRow=document.createElement('div');headRow.className='cal-grid';headRow.style.marginBottom='4px';
+  WEEK_DAYS.forEach((wd,i)=>{const h=document.createElement('div');h.className='cal-head'+(i===0?' sun':'');h.textContent='周'+wd;headRow.appendChild(h);});
+  frag.appendChild(headRow);
+  const grid=document.createElement('div');grid.className='cal-grid';
+  for(let e=0;e<startDow;e++){const emp=document.createElement('div');emp.className='cal-empty';grid.appendChild(emp);}
+  days.forEach((day,i)=>{
+    const gi=globalOffset+i,id=`d${gi}`,date=getDate(gi),isDone=done.includes(id),isTdy=isToday(date);
+    const card=document.createElement('div');
+    card.className='card'+(isDone?' done':'')+(isTdy?' today':'');
+    card.style.borderTopColor=color;
+    if(isDone){
+      card.style.background=hex2rgba(color,0.12);card.style.borderColor=hex2rgba(color,0.25);
+      card.innerHTML=`<div class="d-overlay" style="display:flex"><div class="d-check-big" style="color:${color}">✓</div><div class="d-done-day" style="color:${color}">Day${gi+1} · ${fmt(date)}</div></div><div style="visibility:hidden;font-size:11px">x</div>`;
+    }else{
+      card.innerHTML=`<div class="d-top"><span class="d-num">Day${gi+1}</span><span class="d-hours">${day.h}</span></div><div class="d-date">${fmt(date)}</div><div class="d-task">${day.t.replace(/\n/g,'<br>')}</div>${day.a?`<div class="d-algo">${day.a}</div>`:''}`;
+    }
+    card.onclick=()=>toggle(id);grid.appendChild(card);
+  });
+  const r2=(startDow+days.length)%7;if(r2!==0){for(let e=0;e<7-r2;e++){const emp=document.createElement('div');emp.className='cal-empty';grid.appendChild(emp);}}
+  frag.appendChild(grid);return frag;
+}
+function render(){
+  const container=document.getElementById('phases');container.innerHTML='';
+  let gi=0,totalDone=0;
+  const total=PHASES.reduce((s,p)=>s+p.days.length,0);
+  PHASES.forEach((ph)=>{
+    const phDone=ph.days.filter((_,i)=>done.includes(`d${gi+i}`)).length;
+    const phPct=Math.round(phDone/ph.days.length*100);
+    const pd=document.createElement('div');pd.className='phase';
+    pd.innerHTML=`<div class="phase-header"><div class="phase-dot" style="background:${ph.color}"></div><div><div class="phase-name">${ph.name}</div><div class="phase-desc">${ph.desc}</div></div><div class="phase-right"><div class="phase-bar-track"><div class="phase-bar-fill" style="width:${phPct}%;background:${ph.color}"></div></div><div class="phase-count">${phDone}/${ph.days.length}</div></div></div>`;
+    const cw=document.createElement('div');cw.appendChild(buildCalendar(ph.days,gi,ph.color));pd.appendChild(cw);
+    container.appendChild(pd);totalDone+=phDone;gi+=ph.days.length;
+  });
+  document.getElementById('dn').textContent=totalDone;
+  document.getElementById('rem').textContent=total-totalDone;
+  const pct=Math.round(totalDone/total*100);
+  document.getElementById('pc').textContent=pct+'%';
+  document.getElementById('pf').style.width=pct+'%';
+}
+render();
+</script>
+</body>
+</html>
